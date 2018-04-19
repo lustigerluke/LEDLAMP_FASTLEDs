@@ -86,13 +86,32 @@ void setup() {
   currentPalette = RainbowColors_p;
   targetPalette = bhw1_purpgreen_gp;
   currentBlending = LINEARBLEND;
-//**************************************************    
+//**************************************************
   DBG_OUTPUT_PORT.begin(115200);
 
   // set builtin led pin as output
   pinMode(BUILTIN_LED, OUTPUT);
   // start ticker with 0.5 because we start in AP mode and try to connect
   ticker.attach(0.6, tick);
+
+  // ***************************************************************************
+  // Setup: FASTLED
+  // ***************************************************************************
+  delay(500);
+
+  // tell FastLED about the LED strip configuration
+  FastLED.addLeds<LED_TYPE,DATA_PIN1,COLOR_ORDER>(leds, NUM_LEDS);
+  FastLED.addLeds<LED_TYPE,DATA_PIN2,COLOR_ORDER>(leds, NUM_LEDS);
+  //FastLED.addLeds<LED_TYPE,DATA_PIN,CLK_PIN,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  delay(500);
+  // set master brightness control
+  FastLED.setBrightness(brightness);
+  main_color.red = 0;
+  main_color.green = 0;
+  main_color.blue = 255;
+  for(int x = 0; x < NUM_LEDS ; x++){  leds[x] = CRGB(main_color.red,main_color.green,main_color.blue);}
+  FastLED.show();
+
 
   // ***************************************************************************
   // Setup: WiFiManager
@@ -122,18 +141,8 @@ void setup() {
   //keep LED on
   digitalWrite(BUILTIN_LED, LOW);
 
+  delay(2000);
 
-  // ***************************************************************************
-  // Setup: FASTLED
-  // ***************************************************************************
-  delay(3000); // 3 second delay for recovery
-  
-  // tell FastLED about the LED strip configuration
-  FastLED.addLeds<LED_TYPE,DATA_PIN,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
-  //FastLED.addLeds<LED_TYPE,DATA_PIN,CLK_PIN,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
-
-  // set master brightness control
-  FastLED.setBrightness(brightness);
 
 
   // ***************************************************************************
@@ -235,7 +244,7 @@ void setup() {
     if (brightness < 0) {
       brightness = 0;
     }
-    FastLED.setBrightness(brightness);
+    //FastLED.setBrightness(brightness);
 
     if (mode == HOLD) {
       mode = ALL;
@@ -280,7 +289,7 @@ void setup() {
     getArgs();
     getStatusJSON();
   });
-      
+
   server.on("/rainbow", []() {
     exit_func = true;
     mode = RAINBOW;
@@ -321,14 +330,14 @@ void setup() {
     mode = RIPPLE;
     getArgs();
     getStatusJSON();
-  });  
+  });
 
   server.on("/comet", []() {
     exit_func = true;
     mode = COMET;
     getArgs();
     getStatusJSON();
-  });   
+  });
 
   server.begin();
 }
@@ -338,7 +347,7 @@ void loop() {
   webSocket.loop();
 //  ArduinoOTA.handle();
 //  yield();
-  
+
   EVERY_N_MILLISECONDS(int(float(1000/FPS)))  { gHue++; } // slowly cycle the "base color" through the rainbow
 
   // Simple statemachine that handles the different modes
@@ -367,9 +376,9 @@ void loop() {
     int showlength_Millis = show_length*1000;
     //DBG_OUTPUT_PORT.println("showlengthmillis = " + String(showlength_Millis));
       if (((millis()) - (lastMillis)) >= showlength_Millis) {
-        nextPattern(); 
+        nextPattern();
         DBG_OUTPUT_PORT.println("void nextPattern was called at " + String(millis()) + " and the current show length set to " + String(showlength_Millis));
-      } 
+      }
     }
 
   if (mode == RAINBOW) {
@@ -379,18 +388,18 @@ void loop() {
   if (mode == CONFETTI) {
     confetti();
   }
-  
+
   if (mode == SINELON) {
     sinelon();
   }
-  
+
   if (mode == JUGGLE) {
     juggle();
   }
-  
+
   if (mode == BPM) {
     bpm();
-  }   
+  }
 
   if (mode == PALETTE_ANIMS){
     palette_anims();
@@ -398,15 +407,15 @@ void loop() {
 
   if (mode == RIPPLE){
     ripple();
-  }  
+  }
 
   if (mode == COMET){
     comet();
-  }  
+  }
 
   if (mode == THEATERCHASE){
     theaterChase();
-  }   
+  }
 
 }
 
@@ -416,13 +425,6 @@ void nextPattern()
 //  gCurrentPatternNumber = (gCurrentPatternNumber + random(0, ARRAY_SIZE(gPatterns))) % ARRAY_SIZE( gPatterns);
    gCurrentPatternNumber = random(0, ARRAY_SIZE(gPatterns));
    lastMillis = millis();
-  
+
 }
-
-
-
-
-
-
-
 
